@@ -47,11 +47,15 @@ with urllib.request.urlopen(req) as html_content:
 # If Gamer Escape makes any changes to their page layout, need to update (especially "IDENTIFIER"s)
 try:
     recipes_source = soup.find_all(name="div", class_="itembox")   # IDENTIFIER
-except:
-    print("Could not find any recipes.")
+except Exception as e:
+    print("Encountered an error trying to find recipes:", e)
     exit(1)
 
 print()
+
+if len(recipes_source) == 0:
+    print("Could not find any recipes.")
+    exit(0)
 
 all_recipes: list[tuple[str, defaultdict]] = [] # [(job, recipe), ... ]
 for i in recipes_source:
