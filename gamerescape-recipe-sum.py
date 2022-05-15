@@ -103,11 +103,17 @@ if all_recipes:
     for title,recipe in all_recipes:
         print(f"  {title}")
         if title == FC_CRAFT_TEXT:
-            # For FC crafts: display results sorted by total quantity
+            # For FC crafts: print out results sorted by total quantity
             for ing in sorted(recipe.keys(), key=lambda v: recipe[v]):
                 print(f"    {recipe[ing]}x {ing}")
         else:
             for ing in recipe:
                 print(f"    {recipe[ing]}x {ing}")
 
-# TODO: write CSV file of everything in all_recipes
+    if csv_file:
+        with open(csv_file, "w+", newline='') as outfile:
+            csv_writer = csv.writer(outfile)
+            for title,recipe in all_recipes:
+                csv_writer.writerow([title])
+                for ing,qua in recipe.items():
+                    csv_writer.writerow(["", ing, qua])
