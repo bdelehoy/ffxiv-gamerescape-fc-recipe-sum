@@ -10,6 +10,7 @@ FC_CRAFT_TEXT = "Free Company Craft"    # Text that appears on a Gamer Escape pa
 
 parser = argparse.ArgumentParser(description="FFXIV Gamer Escape Recipe Summer")
 parser.add_argument("-u", "--url", required=True, help="URL of a Gamer Escape wiki page for a craftable item")
+parser.add_argument("-q", "--quantity", type=int, help="Quantity multiplier for final ingredients")
 parser.add_argument("-o", "--output-file", help="Name of a CSV file to write sums to")
 
 def sanitize_url(s):
@@ -25,24 +26,32 @@ def sanitize_csv_file_name(s):
 def get_cmd_line_input(inp: argparse.Namespace) -> tuple[str, str]:
     url = sanitize_url(inp.url)
 
+    quantity = 1
+    if inp.quantity:
+        quantity = int(inp.quantity)
+
     csv_filename = ""
     if inp.output_file:
         csv_filename = sanitize_csv_file_name(inp.output_file)
-    return (url, csv_filename)
+    return (url, quantity, csv_filename)
 
 ################################
 
-url,csv_file = get_cmd_line_input(parser.parse_args())
+URL,MAIN_QUANTITY,CSV_FILE = get_cmd_line_input(parser.parse_args())
 
-print(f"Finding recipes from:  {url}")
-if csv_file:
-    print(f"Will write to:         {csv_file}")
+print(f"Finding recipes from:  {URL}")
+print(f"With quantity:         {MAIN_QUANTITY}")
+if CSV_FILE:
+    print(f"Will write to:         {CSV_FILE}")
 
-req = urllib.request.Request(url)
+req = urllib.request.Request(URL)
 # workaround for the bot ban - apply to get this script approved!
 req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0")
 with urllib.request.urlopen(req) as html_content:
     soup = BeautifulSoup(html_content, "html.parser")
+
+final_item = soup.find_all(name="h1")[1].contents[0].strip()
+final_item = f"{final_item}{f' (x{MAIN_QUANTITY})' if MAIN_QUANTITY > 1 else ''}"
 
 # If Gamer Escape makes any changes to their page layout, need to update (especially "IDENTIFIER"s)
 try:
@@ -93,10 +102,9 @@ for i in recipes_source:
         for l,m in zip(ingredients, quantities):
             recipe.append((l,m))
         recipe_title = FC_CRAFT_TEXT
-    #print(f"    {recipe}")
     sums = defaultdict(int)
     for item,quantity in recipe:
-        sums[item] += int(quantity)
+        sums[item] += int(quantity)*MAIN_QUANTITY
 
     all_recipes.append((recipe_title, sums))
 
@@ -104,9 +112,10 @@ print()
 
 if all_recipes:
     print("Final recipe sums:")
+    print(final_item)
     for title,recipe in all_recipes:
         print(f"  {title}")
-        if title == FC_CRAFT_TEXT:
+        if title[:len(FC_CRAFT_TEXT)] == FC_CRAFT_TEXT:
             # For FC crafts: print out results sorted by total quantity
             for ing in sorted(recipe.keys(), key=lambda v: recipe[v]):
                 print(f"    {recipe[ing]}x {ing}")
@@ -114,9 +123,10 @@ if all_recipes:
             for ing in recipe:
                 print(f"    {recipe[ing]}x {ing}")
 
-    if csv_file:
-        with open(csv_file, "w+", newline='') as outfile:
+    if CSV_FILE:
+        with open(CSV_FILE, "w+", newline='') as outfile:
             csv_writer = csv.writer(outfile)
+            csv_writer.writerow([final_item])
             for title,recipe in all_recipes:
                 csv_writer.writerow([title])
                 for ing,qua in recipe.items():

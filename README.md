@@ -8,14 +8,14 @@ Any Python version that supports BeautifulSoup 4.10.0 (developed and working wit
 Run in a command-line environment. Brackets indicate optional arguments.
 
 ```
-gamerescape-recipe-sum.py [-h] -u URL [-o OUTPUT_FILE]
+gamerescape-recipe-sum.py [-h] -u URL [-q QUANTITY] [-o OUTPUT_FILE]
 ```
 
 Examples:
 ```
 python gamerescape-recipe-sum.py -u https://ffxiv.gamerescape.com/wiki/Coelacanth-class_Pressure_Hull
-python gamerescape-recipe-sum.py -u https://ffxiv.gamerescape.com/wiki/Mythrite_Ingot -o output.csv
 python gamerescape-recipe-sum.py -u https://ffxiv.gamerescape.com/wiki/Medium_Cafe_Walls/Recipe
+python gamerescape-recipe-sum.py -u https://ffxiv.gamerescape.com/wiki/Mythrite_Ingot -o output.csv
 ```
 
 Use of a virtual environment is highly recommended:
